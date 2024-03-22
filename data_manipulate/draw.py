@@ -44,9 +44,9 @@ def draw_single(testsingle):
 
     plt.tight_layout()
     if testsingle == 1:
-        plt.savefig('D:\Desktop\论文\新版图片\s_single.png')
+        plt.savefig('D:\Desktop\论文\新版图片\s_single_newdata.png')
     else:
-        plt.savefig('D:\Desktop\论文\新版图片\\r_single.png')
+        plt.savefig('D:\Desktop\论文\新版图片\\r_single_newdata.png')
 
     plt.show()
     formatter = ticker.ScalarFormatter(useMathText=True)

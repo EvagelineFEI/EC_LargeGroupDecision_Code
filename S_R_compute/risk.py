@@ -5,53 +5,55 @@ from S_R_compute.distance import Distance
 
 
 class GroupRisk:
-    def __init__(self, data, w_matrix, num=30):
-        self.n = 4
-        self.L = 3
-        self.t = 4
+    def __init__(self, data, alpha,w_matrix, dimension=None, num=30):
+        if dimension is None:
+            dimension = [4, 4, 3]
+        self.m_first_dimension = dimension[0]
+        self.m_second_dimension = dimension[1]
+        self.m_third_dimension = dimension[2]
         self.num = 30
         self.data = data
         self.w_matrix = w_matrix
         self.matrix_vgij = []
         self.mcov = np.zeros((num, num))
         self.alle = []
-        self.count_dis = Distance(data=data, w_matrix=w_matrix)
+        self.count_dis = Distance(data=data, w_matrix=w_matrix,alpha=alpha,dimension=dimension,num=num)
 
     def count_var2t(self):
         sum = 0
         # for sub0 in range(2*t+1):
         #   sum += t**2
         # return sum/(2*t+1)
-        sub1 = 2 * self.t / 2
-        for sub0 in range(2 * self.t + 1):
+        sub1 = 2 * self.m_second_dimension / 2
+        for sub0 in range(2 * self.m_second_dimension + 1):
             sum += (sub0 - sub1) ** 2
-        return sum / (2 * self.t)
+        return sum / (2 * self.m_second_dimension)
 
     def count_vgij(self):  # 计算matrix_vgij
         for iter in range(self.num):
             Var2t = 0  # !!!可能是这里导致了R过大
             proc = []
-            for i in range(self.t):
+            for i in range(self.m_second_dimension):
                 m_gbij = np.sum(self.data[iter][i], axis=1)
                 proc.append(m_gbij)
             proc = np.array(proc)
-            proc /= self.L
+            proc /= self.m_third_dimension
 
-            matrix_vgij_ = np.zeros((self.n, self.n))
-            for i in range(self.n):
-                for j in range(self.n):
+            matrix_vgij_ = np.zeros((self.m_first_dimension, self.m_first_dimension))
+            for i in range(self.m_first_dimension):
+                for j in range(self.m_first_dimension):
                     inlines = 0
-                    for l in range(self.L):
+                    for l in range(self.m_third_dimension):
                         inlines += (self.data[iter][i][j][l] - proc[i][j]) ** 2
                         Var2t = self.count_var2t()
 
-                    inlines = inlines / (self.L * Var2t)
+                    inlines = inlines / (self.m_third_dimension * Var2t)
                     matrix_vgij_[i][j] = proc[i][j] - inlines
 
             self.matrix_vgij.append(matrix_vgij_)
 
     def count_vig(self, matrix_vgij):
-        for i in range(self.n):
+        for i in range(self.m_first_dimension):
             matrix_vgij[i][i] = 0
         matrix_vig = np.sum(abs(matrix_vgij), axis=1)
         matrix_vig = np.array(matrix_vig)
@@ -60,16 +62,16 @@ class GroupRisk:
     def countP(self, matrix_vig):
         below_sum = np.sum(matrix_vig)
         p = []
-        for i in range(self.n):
+        for i in range(self.m_first_dimension):
             p.append(matrix_vig[i] / below_sum)
         p = np.array(p)
         return p
 
     def count_var(self, e, matrix_vig):  # 这是计算单个值（每个决策矩阵的方差），最后要放入数组
         inlinesum = 0
-        for i in range(self.n):
+        for i in range(self.m_first_dimension):
             inlinesum += (matrix_vig[i] - e[i]) ** 2
-        return inlinesum / self.n
+        return inlinesum / self.m_first_dimension
 
     def count_alle(self):
         allp = []
@@ -90,8 +92,8 @@ class GroupRisk:
             m_vik -= ek
             mul = np.multiply(m_vig, m_vik)
             cov = 0
-            for i in range(self.n):
-                cov += mul[i] / self.n
+            for i in range(self.m_first_dimension):
+                cov += mul[i] / self.m_first_dimension
             return cov
 
         # allvar = []

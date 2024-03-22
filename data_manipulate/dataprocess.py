@@ -4,7 +4,7 @@ import os
 current_path = os.getcwd()
 cnt = 0
 
-
+# 仅支持4*4*3
 def load_mat():
     global cnt
     dataMat = []
@@ -54,7 +54,33 @@ def load_mat():
             new_data.append(mat)
             cnt = cnt + 1
     return np.array(new_data)
+# 通用的数据处理函数，可以读出n*n*t格式的矩阵
+def load_mat_general(n, t, file_path):
+    global cnt
+    dataMat = []
+    path = current_path+'\data_manipulate\\'+file_path
+    with open(path, 'r') as fr:
+        for line in fr.readlines():
+            curLine = line.strip().split()
+            fltLine = list(map(float, curLine))  # 转换每行数据为浮点数列表
 
+            # 以n*n*t的格式组织数据
+            for i in range(0, len(fltLine), n*t):
+                L = []  # 暂存n*n*t中的一层
+                for j in range(i, i + n*t, t):
+                    L.append(fltLine[j:j+t])
+                dataMat.append(L)
+
+    new_data = []  # 存储整理好的三维矩阵
+    mat = []  # 暂时存储一个三维矩阵
+    cnt = 0  # 初始化计数器
+
+    for i in range(0, len(dataMat), n):  # 每n行数据组成一个三维矩阵
+        mat = dataMat[i:i+n]
+        new_data.append(mat)
+        cnt += 1
+
+    return np.array(new_data)
 
 # new_d = load_mat()
 # # proc=[]
