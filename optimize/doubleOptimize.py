@@ -17,6 +17,7 @@ class DoubleOptimizer:
         self.maxtier = maxtier
         self.elite = elite
         self.population = []
+        self.gens_scores = []
         self.forselect_pop = []
         self.gens_avg_record = []
         self.genr_avg_record = []
@@ -27,7 +28,7 @@ class DoubleOptimizer:
         self.w_matrix = np.zeros(num)
         self.distance_counter = Distance(data, self.w_matrix, alpha,dimension,num)
         self.risk_counter = GroupRisk(data, self.w_matrix, alpha,dimension,num)
-        self.gens_scores = []
+
 
     def addto1(self,pop):
         for ind in range(len(pop)):
@@ -177,7 +178,7 @@ class DoubleOptimizer:
         self.pop_init()
         for c in range(1, self.maxtier + 1):  # 每一轮都要更新population
             print("GENERATION:", c)
-            gens_scores = []
+            self.gens_scores = []
             son_population = []
             for ind in range(self.popsize):
                 candidates = list(range(0, self.popsize))
@@ -228,8 +229,8 @@ class DoubleOptimizer:
             # population = addto1(population)
             # print(gen_best_record[iter])
             if iter > 10:
-                idx = gens_scores.index(max(gens_scores))
-                self.wake_s(self.population[gens_scores.index(max(gens_scores))], idx)
+                idx = self.gens_scores.index(max(self.gens_scores))
+                self.wake_s(self.population[self.gens_scores.index(max(self.gens_scores))], idx)
 
             iter += 1
 
