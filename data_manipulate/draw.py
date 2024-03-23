@@ -33,7 +33,7 @@ def draw_single(testsingle):
     axes[0].set_title(figure_title1, fontsize=20)
     axes[0].grid(True)
     # 设置纵坐标格式
-    axes[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    # axes[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     for i in range(len(gen_avg_record)):
         axes[1].scatter(iter[i], gen_avg_record[i], color='orange', edgecolors='black')
     axes[1].tick_params(axis='both', which='major', labelsize=16)
@@ -46,7 +46,7 @@ def draw_single(testsingle):
     if testsingle == 1:
         plt.savefig('D:\Desktop\论文\新版图片\s_single_newdata.png')
     else:
-        plt.savefig('D:\Desktop\论文\新版图片\\r_single_newdata.png')
+        plt.savefig('D:\Desktop\论文\新版图片\\r_single.png')
 
     plt.show()
     formatter = ticker.ScalarFormatter(useMathText=True)

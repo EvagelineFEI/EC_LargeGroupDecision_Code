@@ -2,7 +2,7 @@
 # compared method 2
 import numpy as np
 class IntervalTypeFuzzy:
-    def __init__(self, data, alpha, theta=2):
+    def __init__(self, data, alpha=0.5, theta=2):
         self.data = data
         self.theta = theta
         self.alpha = alpha
@@ -22,7 +22,8 @@ class IntervalTypeFuzzy:
                 low_sum = 0
                 for k in range(shape[0]):
                     low_sum += max(self.data[i][j][k])
-                self.fuz += up_sum/low_sum
+                if low_sum != 0:
+                    self.fuz += up_sum/low_sum
 
         self.fuz = self.fuz/(self.first_dimension*self.second_dimension)
 
@@ -37,12 +38,15 @@ class IntervalTypeFuzzy:
                 low_sum = 0
                 for k in range(shape[0]):
                     low_sum += max(self.data[i][j][k])
-                self.hes += up_sum / low_sum
+                if low_sum != 0:
+                    self.hes += up_sum / low_sum
 
         self.hes = self.hes / (self.first_dimension * self.second_dimension)
 
     def count_r(self):
         self.count_fuzz()
         self.count_hes()
-        return ((2**self.fuz - 1)**self.alpha + (2**self.hes - 1)**self.alpha)/self.theta
+        print(self.fuz)
+        print(self.hes)
+        return ((2**abs(self.fuz) - 1)**self.alpha + (2**abs(self.hes) - 1)**self.alpha)/self.theta
 

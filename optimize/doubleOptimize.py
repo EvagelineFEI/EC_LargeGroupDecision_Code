@@ -6,8 +6,11 @@ from S_R_compute.distance import Distance
 from S_R_compute.risk import GroupRisk
 import json
 
+
 class DoubleOptimizer:
-    def __init__(self, num, data, popsize=100, mutate=0.8, recombination=0.5, maxtier=100, elite=0.8):
+    def __init__(self, data, alpha,dimension=None, num=30, popsize=100, mutate=0.8, recombination=0.5, maxtier=100, elite=0.8):
+        if dimension is None:
+            dimension = [4, 4, 3]
         self.popsize = popsize
         self.mutate = mutate
         self.cr = recombination
@@ -18,18 +21,18 @@ class DoubleOptimizer:
         self.gens_avg_record = []
         self.genr_avg_record = []
         self.gen_best_record = [[] for i in range(maxtier)]  # 可视化: 每次迭代后，都显示出S和R的值
-        self.gen_solset = []
+        self.gen_solset = [[] for i in range(maxtier)]
         self.num = num
         self.bounds = (0, 1)
         self.w_matrix = np.zeros(num)
-        self.distance_counter = Distance(data, self.w_matrix)
-        self.risk_counter = GroupRisk(data, self.w_matrix)
+        self.distance_counter = Distance(data, self.w_matrix, alpha,dimension,num)
+        self.risk_counter = GroupRisk(data, self.w_matrix, alpha,dimension,num)
         self.gens_scores = []
 
-    def addto1(self):
-        for ind in range(len(self.population)):
-            allsum = np.sum(self.population[ind])
-            self.population[ind] /= allsum
+    def addto1(self,pop):
+        for ind in range(len(pop)):
+            allsum = np.sum(pop[ind])
+            pop[ind] /= allsum
 
     def pop_init(self):
         for i in range(self.popsize):
@@ -40,16 +43,17 @@ class DoubleOptimizer:
                     indiv.append(indiv0)
             self.population.append(indiv)
         self.addto1(self.population)
-    def dominate(self,p, q):  # p q 是两个向量,计算 p 是否支配 q
+
+    def dominate(self, p, q):  # p q 是两个向量,计算 p 是否支配 q
         self.distance_counter.w_matrix = p.copy()
         self.risk_counter.w_matrix = p.copy()
-        p_1, _ = self.distance_counter.finalcount()
-        p_2 = self.risk_counter.finalcount()
+        p_1, _ = self.distance_counter.final_count()
+        p_2 = self.risk_counter.final_count()
 
         self.distance_counter.w_matrix = q.copy()
         self.risk_counter.w_matrix = q.copy()
-        q_1, _ = self.distance_counter.finalcount()
-        q_2 = self.risk_counter.finalcount()
+        q_1, _ = self.distance_counter.final_count()
+        q_2 = self.risk_counter.final_count()
         global temp_t1
         temp_t1 = p_1
         global temp_t2
@@ -65,16 +69,16 @@ class DoubleOptimizer:
         else:
             return 0
 
-    def selectBynasg2(self, forselect_pop):  # 非支配排序
+    def selectBynasg2(self):  # 非支配排序
         iter = 0
-        S = [[] for i in range(len(forselect_pop))]
+        S = [[] for i in range(len(self.forselect_pop))]
         front = [[]]
-        n = [0 for i in range(len(forselect_pop))]  # n长度为len(population)，每个元素为0
-        rank = [0 for i in range(len(forselect_pop))]
+        n = [0 for i in range(len(self.forselect_pop))]  # n长度为len(population)，每个元素为0
+        rank = [0 for i in range(len(self.forselect_pop))]
         # 求第0级前沿
-        for p in range(len(forselect_pop)):  # 这里p q是int型
-            for q in range(p + 1, len(forselect_pop)):
-                flag = self.dominate(forselect_pop[p], forselect_pop[q])  # 这里可能耗时比较长
+        for p in range(len(self.forselect_pop)):  # 这里p q是int型
+            for q in range(p + 1, len(self.forselect_pop)):
+                flag = self.dominate(self.forselect_pop[p], self.forselect_pop[q])  # 这里可能耗时比较长
                 if flag == 1:
                     S[p].append(q)
                     n[q] += 1
@@ -87,7 +91,8 @@ class DoubleOptimizer:
                     front[0].append(p)
                     self.gen_best_record[iter].append([temp_t1, temp_t2])  #
                     idx = front[0].index(p)
-                    self.gen_solset[iter].append(forselect_pop[front[0][idx]])  # 每次都把第一级前沿的结果向量放入gen_solset
+
+                    self.gen_solset[iter].append(self.forselect_pop[front[0][idx]])  # 每次都把第一级前沿的结果向量放入gen_solset
 
         i = 0
         while (front[i] != []):
@@ -111,8 +116,8 @@ class DoubleOptimizer:
         for i in range(len(listforselect)):
             self.distance_counter.w_matrix = self.forselect_pop[i].copy()
             self.risk_counter.w_matrix = self.forselect_pop[i].copy()
-            c1, _ = self.distance_counter.finalcount()  # max
-            c2 = self.risk_counter.finalcount()  # min
+            c1, _ = self.distance_counter.final_count()  # max
+            c2 = self.risk_counter.final_count()  # min
             c = c1 + 10000 - c2  # 化为最大值
             clist.append(c)
         list_c = zip(listforselect, clist)  # 序号和函数值
@@ -133,14 +138,14 @@ class DoubleOptimizer:
         cgest_lidx = [j[1] for j in cgest_l]
         return cgest_lidx
 
-    def wake_s(self,w_list, idx):
+    def wake_s(self, w_list, idx):
         candidate = list(range(0, self.popsize))
         candidate.remove(idx)
         ram_idx = sample(candidate, 3)
         for i in range(0, 3):
             self.population[ram_idx[i]] = w_list
 
-    def selectnewpop(self, front):
+    def select_newpop(self, front):
         newpop = []  # 存储新一代种群个体的序号
         # while(len(newpop)<100):
         for i in range(len(front)):
@@ -157,9 +162,9 @@ class DoubleOptimizer:
             self.distance_counter.w_matrix = self.forselect_pop[newpop[j]].copy()
             self.risk_counter.w_matrix = self.forselect_pop[newpop[j]].copy()
 
-            a, _ = self.distance_counter.finalcount()
+            a, _ = self.distance_counter.final_count()
             sums += a
-            sumr += self.risk_counter.w_matrix.finalcount()
+            sumr += self.risk_counter.final_count()
             # print(sums, sumr)
             self.gens_scores.append(a)
             self.population[j] = self.forselect_pop[newpop[j]]
@@ -168,8 +173,9 @@ class DoubleOptimizer:
         self.genr_avg_record.append(sumr / self.popsize)
 
     def evolution(self):
+        iter = 0
         self.pop_init()
-        for c in range(1, self.maxiter + 1):  # 每一轮都要更新population
+        for c in range(1, self.maxtier + 1):  # 每一轮都要更新population
             print("GENERATION:", c)
             gens_scores = []
             son_population = []
@@ -182,7 +188,6 @@ class DoubleOptimizer:
                 w2 = self.population[random_index[1]]
                 w3 = self.population[random_index[2]]
                 w_t = self.population[ind]
-
                 w_sub = [w2i - w3i for w2i, w3i in zip(w2, w3)]
                 w_new = [w1i + self.mutate * w_subi for w1i, w_subi in zip(w1, w_sub)]
                 # 对越界的进行处理
@@ -204,7 +209,7 @@ class DoubleOptimizer:
                 for k in range(len(w_t)):
                     crossp = random()
 
-                    if crossp < self.recombination:  # 交叉
+                    if crossp < self.cr:  # 交叉
                         w_trial.append(w_new1[k])
 
                     else:
@@ -213,18 +218,28 @@ class DoubleOptimizer:
                     son_population.append(w_trial)
             # 开始 NSGA2
             # 每个父本都产生了子代，之后父子代混合，进行选择
-            forselect_pop = son_population + self.population
-            forselect_pop = self.addto1(forselect_pop)
-            print(forselect_pop)
+            self.forselect_pop = son_population + self.population
+            self.addto1(self.forselect_pop)
+            # print(forselect_pop)
             # print("Above is the pop")
-            front = self.selectBynasg2(forselect_pop)
+            front = self.selectBynasg2()
             # print(front)
-            self.selectnewpop(front)
+            self.select_newpop(front)
             # population = addto1(population)
             # print(gen_best_record[iter])
             if iter > 10:
                 idx = gens_scores.index(max(gens_scores))
-                wakeS(population[gens_scores.index(max(gens_scores))], idx)
+                self.wake_s(self.population[gens_scores.index(max(gens_scores))], idx)
 
             iter += 1
 
+    def store_result(self):
+        data = {
+            "gen_best_record": self.gen_best_record,
+            "gens_avg_record": self.gens_avg_record,
+            "genr_avg_record": self.genr_avg_record
+            # "gen_solset": self.gen_solset
+        }
+        # 写入到文件
+        with open("./data_manipulate/double_opt.json", "w") as file:
+            json.dump(data, file)

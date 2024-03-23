@@ -11,7 +11,7 @@ class GroupRisk:
         self.m_first_dimension = dimension[0]
         self.m_second_dimension = dimension[1]
         self.m_third_dimension = dimension[2]
-        self.num = 30
+        self.num = num
         self.data = data
         self.w_matrix = w_matrix
         self.matrix_vgij = []

@@ -8,7 +8,7 @@ import json
 
 
 class SingleOptimizer:
-    def __init__(self, test_target, num, data, alpha, dimension=None,popsize=100, mutate=0.8, recombination=0.5, maxtier=100,
+    def __init__(self, test_target, data, alpha, num=30, dimension=None,popsize=100, mutate=0.8, recombination=0.5, maxtier=100,
                  elite=0.8):
         if dimension is None:
             dimension = [4, 4, 3]
@@ -26,8 +26,8 @@ class SingleOptimizer:
         self.num = num
         self.bounds = (0, 1)
         self.w_matrix = np.zeros(num)
-        self.distance_counter = Distance(data, alpha, dimension,self.w_matrix,num)
-        self.risk_counter = GroupRisk(data, self.w_matrix,alpha,dimension,num)
+        self.distance_counter = Distance(data, alpha=alpha, dimension=dimension,w_matrix=self.w_matrix,num=num)
+        self.risk_counter = GroupRisk(data,alpha=alpha, w_matrix=self.w_matrix,dimension=dimension,num=num)
 
     def addto1(self):
         for ind in range(len(self.population)):
