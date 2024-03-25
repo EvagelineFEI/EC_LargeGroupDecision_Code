@@ -24,6 +24,9 @@ class DoubleOptimizer:
         self.gen_best_record = [[] for i in range(maxtier)]  # 可视化: 每次迭代后，都显示出S和R的值
         self.gen_solset = [[] for i in range(maxtier)]
         self.num = num
+        self.temp_1 = 0
+        self.temp_2 = 0
+        self.iter = 0
         self.bounds = (0, 1)
         self.w_matrix = np.zeros(num)
         self.distance_counter = Distance(data, self.w_matrix, alpha,dimension,num)
@@ -71,7 +74,7 @@ class DoubleOptimizer:
             return 0
 
     def selectBynasg2(self):  # 非支配排序
-        iter = 0
+        # iter = 0
         S = [[] for i in range(len(self.forselect_pop))]
         front = [[]]
         n = [0 for i in range(len(self.forselect_pop))]  # n长度为len(population)，每个元素为0
@@ -90,10 +93,10 @@ class DoubleOptimizer:
                 rank[p] = 0
                 if p not in front[0]:
                     front[0].append(p)
-                    self.gen_best_record[iter].append([temp_t1, temp_t2])  #
+                    self.gen_best_record[self.iter].append([self.temp_1, self.temp_2])  #
                     idx = front[0].index(p)
 
-                    self.gen_solset[iter].append(self.forselect_pop[front[0][idx]])  # 每次都把第一级前沿的结果向量放入gen_solset
+                    self.gen_solset[self.iter].append(self.forselect_pop[front[0][idx]])  # 每次都把第一级前沿的结果向量放入gen_solset
 
         i = 0
         while (front[i] != []):
@@ -174,7 +177,7 @@ class DoubleOptimizer:
         self.genr_avg_record.append(sumr / self.popsize)
 
     def evolution(self):
-        iter = 0
+        # iter = 0
         self.pop_init()
         for c in range(1, self.maxtier + 1):  # 每一轮都要更新population
             print("GENERATION:", c)
@@ -228,11 +231,11 @@ class DoubleOptimizer:
             self.select_newpop(front)
             # population = addto1(population)
             # print(gen_best_record[iter])
-            if iter > 10:
+            if self.iter > 10:
                 idx = self.gens_scores.index(max(self.gens_scores))
                 self.wake_s(self.population[self.gens_scores.index(max(self.gens_scores))], idx)
 
-            iter += 1
+            self.iter += 1
 
     def store_result(self):
         data = {
