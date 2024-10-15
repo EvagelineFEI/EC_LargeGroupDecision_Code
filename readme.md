@@ -8,11 +8,15 @@ We need to assign weights to each expert's opinion in order to make optimal deci
 
 This project uses differential evolution algorithm to optimize this problem; The problems are solved under the background of single objective and double objective respectively. The NSGA II algorithm is used to solve the double objective problem.
 
+This project is part of the paper，[Biobjective Optimization Method for Large-Scale Group Decision Making Based on Hesitant Fuzzy Linguistic Preference Relations With Granularity Levels](https://ieeexplore.ieee.org/document/10557532)
+
 根据含粒度的犹豫模糊语言理论，得出一个大群体决策问题中，各个专家意见共识度**S**和群体决策风险度**R**的计算公式。
 
 我们需要为每个专家的意见分配权重，以便择优决策，最优的权重应该使得**S**尽可能大，**R**尽可能小。
 
 本项目使用差分进化算法来优化这个问题；并分别在单目标和双目标背景下解决问题。解决双目标问题时使用了NSGAⅡ算法。
+
+本项目是论文Biobjective Optimization Method for Large-Scale Group Decision Making Based on Hesitant Fuzzy Linguistic Preference Relations With Granularity Levels的一部分，用于解决论文中的双目标优化部分，帮助用户找到最佳的专家意见权重，使得群体决策的风险值和决策一致性都达到最优。
 
 # 
 
